@@ -7,6 +7,11 @@ urlpatterns = [
     # Dashboard
     path('', views.dashboard, name='dashboard'),
 
+    # Navigation tab aliases
+    path('campaigns/', views.email_templates_list, name='campaigns'),
+    path('templates/', views.dashboard, name='templates'),
+
+
     # EmailTemplate
     path('email_templates/', views.email_templates_list, name='email_templates_list'),
     path('email_templates/add/', views.email_template_add, name='email_template_add'),
