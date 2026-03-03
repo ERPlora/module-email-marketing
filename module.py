@@ -33,3 +33,20 @@ PERMISSIONS = [
 'email_marketing.change_emailtemplate',
 'email_marketing.manage_settings',
 ]
+
+ROLE_PERMISSIONS = {
+    "admin": ["*"],
+    "manager": [
+        "add_emailcampaign",
+        "add_emailtemplate",
+        "change_emailcampaign",
+        "change_emailtemplate",
+        "view_emailcampaign",
+        "view_emailtemplate",
+    ],
+    "employee": [
+        "add_emailcampaign",
+        "view_emailcampaign",
+        "view_emailtemplate",
+    ],
+}
