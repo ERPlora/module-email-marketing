@@ -3,6 +3,8 @@ Email Marketing Module Views
 """
 from django.core.paginator import Paginator
 from django.db.models import Q, Count
+from django.http import HttpResponse
+from django.urls import reverse
 from django.shortcuts import get_object_or_404, render as django_render
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
@@ -112,6 +114,7 @@ def email_templates_list(request):
     }
 
 @login_required
+@htmx_view('email_marketing/pages/email_template_add.html', 'email_marketing/partials/email_template_add_content.html')
 def email_template_add(request):
     hub_id = request.session.get('hub_id')
     if request.method == 'POST':
@@ -125,10 +128,13 @@ def email_template_add(request):
         obj.body_html = body_html
         obj.is_active = is_active
         obj.save()
-        return _render_email_templates_list(request, hub_id)
-    return django_render(request, 'email_marketing/partials/panel_email_template_add.html', {})
+        response = HttpResponse(status=204)
+        response['HX-Redirect'] = reverse('email_marketing:email_templates_list')
+        return response
+    return {}
 
 @login_required
+@htmx_view('email_marketing/pages/email_template_edit.html', 'email_marketing/partials/email_template_edit_content.html')
 def email_template_edit(request, pk):
     hub_id = request.session.get('hub_id')
     obj = get_object_or_404(EmailTemplate, pk=pk, hub_id=hub_id, is_deleted=False)
@@ -139,7 +145,7 @@ def email_template_edit(request, pk):
         obj.is_active = request.POST.get('is_active') == 'on'
         obj.save()
         return _render_email_templates_list(request, hub_id)
-    return django_render(request, 'email_marketing/partials/panel_email_template_edit.html', {'obj': obj})
+    return {'obj': obj}
 
 @login_required
 @require_POST
@@ -257,6 +263,7 @@ def email_campaigns_list(request):
     }
 
 @login_required
+@htmx_view('email_marketing/pages/email_campaign_add.html', 'email_marketing/partials/email_campaign_add_content.html')
 def email_campaign_add(request):
     hub_id = request.session.get('hub_id')
     if request.method == 'POST':
@@ -274,10 +281,13 @@ def email_campaign_add(request):
         obj.open_count = open_count
         obj.click_count = click_count
         obj.save()
-        return _render_email_campaigns_list(request, hub_id)
-    return django_render(request, 'email_marketing/partials/panel_email_campaign_add.html', {})
+        response = HttpResponse(status=204)
+        response['HX-Redirect'] = reverse('email_marketing:email_campaigns_list')
+        return response
+    return {}
 
 @login_required
+@htmx_view('email_marketing/pages/email_campaign_edit.html', 'email_marketing/partials/email_campaign_edit_content.html')
 def email_campaign_edit(request, pk):
     hub_id = request.session.get('hub_id')
     obj = get_object_or_404(EmailCampaign, pk=pk, hub_id=hub_id, is_deleted=False)
@@ -290,7 +300,7 @@ def email_campaign_edit(request, pk):
         obj.click_count = int(request.POST.get('click_count', 0) or 0)
         obj.save()
         return _render_email_campaigns_list(request, hub_id)
-    return django_render(request, 'email_marketing/partials/panel_email_campaign_edit.html', {'obj': obj})
+    return {'obj': obj}
 
 @login_required
 @require_POST
