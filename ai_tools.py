@@ -52,3 +52,65 @@ class ListEmailCampaigns(AssistantTool):
         if args.get('status'):
             qs = qs.filter(status=args['status'])
         return {"campaigns": [{"id": str(c.id), "name": c.name, "template": c.template.name if c.template else None, "status": c.status, "sent_count": c.sent_count, "open_count": c.open_count, "click_count": c.click_count} for c in qs]}
+
+
+@register_tool
+class UpdateEmailCampaign(AssistantTool):
+    name = "update_email_campaign"
+    description = "Update an email campaign's name, template, status, or schedule."
+    module_id = "email_marketing"
+    required_permission = "email_marketing.change_emailcampaign"
+    requires_confirmation = True
+    parameters = {
+        "type": "object",
+        "properties": {
+            "campaign_id": {"type": "string", "description": "Email campaign ID"},
+            "name": {"type": "string"},
+            "template_id": {"type": "string", "description": "Email template ID"},
+            "status": {"type": "string", "description": "Campaign status"},
+            "scheduled_at": {"type": "string", "description": "ISO datetime for scheduled send"},
+        },
+        "required": ["campaign_id"],
+        "additionalProperties": False,
+    }
+
+    def execute(self, args, request):
+        from email_marketing.models import EmailCampaign
+        try:
+            c = EmailCampaign.objects.get(id=args['campaign_id'])
+        except EmailCampaign.DoesNotExist:
+            return {"error": "Email campaign not found"}
+        for field in ('name', 'status', 'scheduled_at'):
+            if args.get(field) is not None:
+                setattr(c, field, args[field])
+        if args.get('template_id') is not None:
+            c.template_id = args['template_id']
+        c.save()
+        return {"id": str(c.id), "name": c.name, "updated": True}
+
+
+@register_tool
+class DeleteEmailCampaign(AssistantTool):
+    name = "delete_email_campaign"
+    description = "Delete an email campaign."
+    module_id = "email_marketing"
+    required_permission = "email_marketing.delete_emailcampaign"
+    requires_confirmation = True
+    parameters = {
+        "type": "object",
+        "properties": {
+            "campaign_id": {"type": "string", "description": "Email campaign ID"},
+        },
+        "required": ["campaign_id"],
+        "additionalProperties": False,
+    }
+
+    def execute(self, args, request):
+        from email_marketing.models import EmailCampaign
+        try:
+            c = EmailCampaign.objects.get(id=args['campaign_id'])
+        except EmailCampaign.DoesNotExist:
+            return {"error": "Email campaign not found"}
+        name = c.name
+        c.delete()
+        return {"name": name, "deleted": True}
